@@ -478,7 +478,7 @@ This demo validates that your application flow is working perfectly! The progres
         ];
 
         const payload = {
-            model: "llama-3.1-8b-instant", // Instant Llama 3.1 model on Groq
+            model: "llama-3.3-70b-versatile", // Upgraded to Llama 3.3 70B for much higher intelligence
             messages: messages,
             temperature: 0.7,
             max_tokens: 2048,
