@@ -273,13 +273,17 @@ If the user asks an SQL query question, completely ignore the rules above. Inste
         let text = data.text.trim();
         
         // Filter out common Whisper silence hallucinations
-        const hallucinations = [
-            "thank you.", "thank you", "thanks for watching.", "thanks for watching", 
-            "bye.", "bye", "you", "amara.org", "subtitle"
-        ];
-        
         const lowerText = text.toLowerCase();
-        if (hallucinations.some(h => lowerText === h || lowerText.includes("subtitles by"))) {
+        
+        // If it's a short string (less than 100 chars) and contains these common hallucination phrases, ignore it.
+        const containsHallucination = 
+            lowerText.includes("thank you") || 
+            lowerText.includes("thanks for watching") || 
+            lowerText.includes("subtitles by") ||
+            lowerText.includes("amara.org") ||
+            (lowerText.length < 20 && (lowerText === "you" || lowerText === "bye." || lowerText === "bye"));
+
+        if (text.length < 150 && containsHallucination) {
             return "";
         }
 
