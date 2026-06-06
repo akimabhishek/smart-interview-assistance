@@ -252,6 +252,7 @@ If the user asks an SQL query question, completely ignore the rules above. Inste
         const formData = new FormData();
         formData.append('file', audioBlob, 'audio.webm');
         formData.append('model', 'whisper-large-v3'); // Use the full model for max accuracy
+        formData.append('language', 'en'); // Force English transcription to stop foreign hallucinations
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
             method: 'POST',
@@ -281,6 +282,8 @@ If the user asks an SQL query question, completely ignore the rules above. Inste
             lowerText.includes("thanks for watching") || 
             lowerText.includes("subtitles by") ||
             lowerText.includes("amara.org") ||
+            lowerText.includes("medietekst") || // Norwegian subtitle hallucination
+            lowerText.includes("takk for") || // Norwegian "thank you"
             (lowerText.length < 20 && (lowerText === "you" || lowerText === "bye." || lowerText === "bye"));
 
         if (text.length < 150 && containsHallucination) {
