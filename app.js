@@ -276,17 +276,25 @@ If the user asks an SQL query question, completely ignore the rules above. Inste
         // Filter out common Whisper silence hallucinations
         const lowerText = text.toLowerCase();
         
-        // If it's a short string (less than 100 chars) and contains these common hallucination phrases, ignore it.
-        const containsHallucination = 
-            lowerText.includes("thank you") || 
-            lowerText.includes("thanks for watching") || 
-            lowerText.includes("subtitles by") ||
+        const containsHallucinationWord = 
+            lowerText.includes("undertextning.nu") ||
             lowerText.includes("amara.org") ||
-            lowerText.includes("medietekst") || // Norwegian subtitle hallucination
-            lowerText.includes("takk for") || // Norwegian "thank you"
-            (lowerText.length < 20 && (lowerText === "you" || lowerText === "bye." || lowerText === "bye"));
+            lowerText.includes("medietekst") ||
+            lowerText.includes("takk for") ||
+            lowerText.includes("thanks for watching") ||
+            lowerText.includes("hush! thank you");
 
-        if (text.length < 150 && containsHallucination) {
+        // Catch severe repetitions, e.g., "I'm going to take a picture of the" repeating 3+ times
+        const hasExtremeRepetition = /(.{12,})\1{2,}/i.test(lowerText);
+
+        // Catch pure "thank you" repetitions
+        const isOnlyThankYou = /^(?:\s*thank you\.?\s*)+$/.test(lowerText);
+
+        // Short string "thank you" or "bye"
+        const isShortThankYou = lowerText.length < 50 && lowerText.includes("thank you");
+        const isShortBye = lowerText.length < 20 && (lowerText.includes("you") || lowerText.includes("bye"));
+
+        if (containsHallucinationWord || hasExtremeRepetition || isOnlyThankYou || isShortThankYou || isShortBye) {
             return "";
         }
 
