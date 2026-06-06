@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Interview Assistant</title>
+    <meta name="description" content="An AI-powered assistant for Product Management interview preparation.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Include Marked.js for parsing markdown from the LLM -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Settings Header -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>PM Interview Assistant</h1>
+            </div>
+            <div class="header-actions">
+                <button id="settingsBtn" class="icon-btn" aria-label="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Chat/Result Area -->
+        <main id="chatArea" class="chat-area">
+            <!-- Empty state -->
+            <div class="empty-state" id="emptyState">
+                <div class="pulse-ring"></div>
+                <h2>Ready for your interview</h2>
+                <p>Press the microphone button and ask a PM question.</p>
+                <div class="frameworks-badge">CIRCLES • HEART • RICE • AARRR</div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer" style="display: none;">
+                <!-- Messages will be injected here via JS -->
+            </div>
+            
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="dot-typing"></div>
+                <span>Analyzing and formatting response...</span>
+            </div>
+        </main>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container glass-panel">
+                <button id="recordBtn" class="record-btn" aria-label="Start Recording">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                    <div class="recording-waves">
+                        <span></span><span></span><span></span>
+                    </div>
+                </button>
+                <div class="textarea-wrapper">
+                    <textarea id="questionInput" placeholder="Speak or type your PM question..." rows="1"></textarea>
+                </div>
+                <button id="sendBtn" class="send-btn" aria-label="Send Question" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+            <div class="status-text" id="statusText">Microphone ready</div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal-overlay">
+            <div class="modal-content glass-panel">
+                <div class="modal-header">
+                    <h2>Configuration</h2>
+                    <button id="closeSettingsBtn" class="icon-btn close-btn" aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="apiKey">Groq API Key</label>
+                        <input type="password" id="apiKey" placeholder="gsk_...">
+                        <p class="help-text">Your key is stored securely in your browser's local storage.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="systemPrompt">Custom System Prompt</label>
+                        <textarea id="systemPrompt" rows="15" placeholder="Enter instructions for the AI..."></textarea>
+                        <p class="help-text">Customize how the PM Copilot responds.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="saveSettingsBtn" class="primary-btn">Save Settings</button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Admin Login Modal -->
+        <div id="adminLoginModal" class="modal-overlay">
+            <div class="modal-content glass-panel" style="max-width: 350px;">
+                <div class="modal-header">
+                    <h2>Admin Access</h2>
+                    <button id="closeAdminLoginBtn" class="icon-btn close-btn" aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter secret password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="adminLoginBtn" class="primary-btn">Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Modal -->
+        <div id="adminDashboardModal" class="modal-overlay">
+            <div class="modal-content glass-panel">
+                <div class="modal-header">
+                    <h2>Admin Dashboard</h2>
+                    <button id="closeAdminDashboardBtn" class="icon-btn close-btn" aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total LLM Tokens</h3>
+                            <div class="stat-value" id="totalTokensStat">0</div>
+                            <div class="stat-label">Prompt + Completion</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Whisper Audio Requests</h3>
+                            <div class="stat-value" id="audioRequestsStat">0</div>
+                            <div class="stat-label">Total transcriptions</div>
+                        </div>
+                    </div>
+                    <button id="resetStatsBtn" class="secondary-btn" style="margin-top: 1rem; width: 100%;">Reset Statistics</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
