@@ -282,7 +282,9 @@ If the user asks an SQL query question, completely ignore the rules above. Inste
             lowerText.includes("medietekst") ||
             lowerText.includes("takk for") ||
             lowerText.includes("thanks for watching") ||
-            lowerText.includes("hush! thank you");
+            lowerText.includes("hush! thank you") ||
+            lowerText.includes("bukübekski") ||
+            lowerText.includes("soin");
 
         // Catch severe repetitions, e.g., "I'm going to take a picture of the" repeating 3+ times
         const hasExtremeRepetition = /(.{12,})\1{2,}/i.test(lowerText);
@@ -290,11 +292,14 @@ If the user asks an SQL query question, completely ignore the rules above. Inste
         // Catch pure "thank you" repetitions
         const isOnlyThankYou = /^(?:\s*thank you\.?\s*)+$/.test(lowerText);
 
+        // Catch non-English scripts (Korean Hangul, Cyrillic, etc.) that sometimes leak through
+        const containsForeignScript = /[\u3131-\uD79D\u0400-\u04FF\uAC00-\uD7A3]/.test(text); 
+
         // Short string "thank you" or "bye"
         const isShortThankYou = lowerText.length < 50 && lowerText.includes("thank you");
         const isShortBye = lowerText.length < 20 && (lowerText.includes("you") || lowerText.includes("bye"));
 
-        if (containsHallucinationWord || hasExtremeRepetition || isOnlyThankYou || isShortThankYou || isShortBye) {
+        if (containsHallucinationWord || hasExtremeRepetition || isOnlyThankYou || isShortThankYou || isShortBye || containsForeignScript) {
             return "";
         }
 
